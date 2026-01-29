@@ -1,0 +1,79 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Critters <3
+////////////////////////////////////////////////////////////////////////////////
+
+use std::{rc::Rc, sync::Arc};
+
+use hecs;
+use sdl2::{rect::Point, render::Texture};
+
+use crate::constants::TILE_SIZE;
+use crate::engine::types;
+
+
+#[derive(hecs::Bundle)]
+
+struct WorldPositionC(Point);
+#[derive(hecs::Bundle)]
+struct SizeC(Point);
+
+#[derive(hecs::Bundle)]
+struct RenderableC{
+    texture: Arc<types::TextureRef>
+}
+
+#[derive(hecs::Bundle)]
+struct CritterStatsC {
+    energy: u32,
+    /// in seconds
+    lifetime: u32,
+}
+
+impl CritterStatsC {
+    fn new(energy: u32, lifetime: u32) -> Self {
+        CritterStatsC { energy, lifetime }
+    }
+    fn new_new(energy: u32) -> Self {
+        CritterStatsC { energy, lifetime:0 }
+    }
+}
+
+#[derive(hecs::Bundle)]
+pub struct MovingC {
+    speed: Point,
+    //x+y
+    direction: Point,
+}
+
+impl MovingC {
+    fn new(speed: Point, direction: Point) -> Self {
+        MovingC { speed, direction }
+    }
+}
+
+struct CritterE(hecs::Entity);
+
+impl CritterE {
+    fn spawn(
+        self,
+        world: &mut hecs::World,
+        position: Point,
+        direction: Point,
+        energy: u32,
+    ) -> Self {
+        // The builder pattern:
+
+        let components = (
+            WorldPositionC(position),
+            MovingC::new(Point::new(0, 0), direction),
+            SizeC(Point::new(TILE_SIZE as _, TILE_SIZE as _)),
+            CritterStatsC::new_new(energy)
+        );
+
+        let e: hecs::Entity = world.spawn(components);
+
+        CritterE(e)
+
+        // let size = SizeC()
+    }
+}
