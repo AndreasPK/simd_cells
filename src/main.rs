@@ -14,10 +14,9 @@ use std::time::{Duration, Instant};
 
 use crate::map::GridMap;
 use crate::texture_cache::EntityTextureManager;
-
+use crate::engine::texture_cache;
 mod constants;
 mod map;
-mod texture_cache;
 mod engine;
 // mod tmp;
 

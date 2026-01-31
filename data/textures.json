@@ -1,0 +1,17 @@
+{
+  "templates": [
+    {
+      "id": "critter.basic",
+      "components": {
+        "WorldPositionC": { "x": 10, "y": 5 },
+        "MovingC": { "speed": { "x": 1, "y": 0 }, "direction": { "x": 0, "y": 1 } }
+      }
+    },
+    {
+      "id": "critter.static",
+      "components": {
+        "WorldPositionC": { "x": 0, "y": 0 }
+      }
+    }
+  ]
+}
