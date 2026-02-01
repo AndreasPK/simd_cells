@@ -1,0 +1,8 @@
+/target
+hecs
+libfreetype-6.dll
+SDL2_*
+SDL2.*
+zlib1.dll
+SDL2main.lib
+SDL2test.lib
