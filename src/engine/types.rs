@@ -1,14 +1,15 @@
 use std::path::Path;
 
 use hecs;
-use sdl2::rect::Point;
+use sdl2::{rect::{Point, Rect}, render::Canvas};
 
-use crate::constants::TILE_SIZE;
+use crate::{constants::TILE_SIZE, engine::entities::{RenderTileC, WorldPositionC}};
 use super::texture_map::TextureMap;
 
 pub struct MseEntityId(u64);
 
 pub struct RenderState<'texture> {
+    /// In pixels
     cam_pos: Point,
     entity_texture_manager: Box<TextureMap<'texture, TextureRef>>,
 }
@@ -22,6 +23,12 @@ impl <'texture>RenderState<'texture> {
     pub fn texture_map_mut(&mut self) -> &mut TextureMap<'texture, TextureRef> {
         &mut self.entity_texture_manager
     }
+
+    pub fn render_tile(&mut self, canvas: &mut Canvas<sdl2::video::Window>, pos: WorldPositionC, tile: RenderTileC) {
+        let texture = self.entity_texture_manager.get_texture( &tile.texture);
+        let dest = (pos.0*TILE_SIZE as _) + self.cam_pos;
+        canvas.copy(texture.as_ref(), None, Rect::new(dest.x, dest.y, TILE_SIZE as _, TILE_SIZE as _));
+    }
 }
 
 pub struct EngineState<'texture> {
@@ -29,7 +36,7 @@ pub struct EngineState<'texture> {
     pub entities: Box<hecs::World>,
 }
 
-#[derive(Hash,Eq,Debug,PartialEq,Clone)]
+#[derive(Hash,Eq,Debug,PartialEq,Clone,Copy)]
 pub struct TextureRef(u32);
 
 impl TextureRef{

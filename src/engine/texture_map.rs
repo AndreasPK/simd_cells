@@ -42,7 +42,6 @@ where
 
     pub fn get_texture<'a, 'b>(
         &'a mut self,
-        canvas: &'b mut Canvas<Window>,
         tile: &E,
     ) -> Rc<Texture<'texture>> {
         self.texture_map.get(tile).unwrap().clone()

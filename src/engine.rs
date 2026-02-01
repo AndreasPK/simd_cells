@@ -1,16 +1,23 @@
 use std::path::Path;
 
-use hecs::World;
-use sdl2::{rect::Point, render::TextureCreator, video::WindowContext};
+use hecs::{DynamicBundle, Entity, World};
+use sdl2::render::{Canvas, TextureCreator, WindowCanvas};
+use sdl2::video::{Window, WindowContext};
 
-use crate::engine::types::{EngineState, RenderState, TextureRef};
+use crate::engine::{
+    entities::{RenderTileC, WorldPositionC},
+    map::GridMap,
+    traits::TextureLoader,
+    types::{EngineState, RenderState, TextureRef},
+};
 
-mod traits;
+pub mod traits;
 pub mod types;
-mod entities;
+pub mod entities;
 mod loader;
 pub mod texture_cache;
 pub mod texture_map;
+pub mod map;
 
 impl <'texture>EngineState<'texture> {
     pub fn init(texture_creator: &'texture TextureCreator<WindowContext>) -> Self{
@@ -21,7 +28,9 @@ impl <'texture>EngineState<'texture> {
         }
     }
 
-    pub fn load_textures_from_folder(&mut self, path: &Path) -> Option<()> {
+    pub fn preload_textures_from_folder<P>(&mut self, p: &P) -> Option<()>
+    where P: AsRef<Path> {
+        let path: &Path = p.as_ref();
         if !path.exists() {
             eprintln!("Texture folder does not exist: {:?}", path);
             return None;
@@ -42,7 +51,43 @@ impl <'texture>EngineState<'texture> {
         Some(())
     }
 
+    pub fn spawn_entity(&mut self, components: impl DynamicBundle) -> Entity {
+        self.entities.spawn(components)
+    }
+
+    pub fn load_texture_cached<P: AsRef<Path>>(&mut self, path: P) -> TextureRef {
+        self.render_state
+            .texture_map_mut()
+            .load_texture_cached(path)
+    }
+
+    pub fn render_entities(&mut self, canvas: &mut Canvas<Window>) {
+
+        let entities: &mut Box<World> = &mut self.entities;
+        for (render_tile,pos) in entities.query::<(&RenderTileC,&WorldPositionC)>().iter() {
+            self.render_state.render_tile(canvas, pos.clone(), *render_tile);
+        }
+
+    }
+
+    pub fn render_map<'map>(&mut self, canvas: &mut WindowCanvas, map: &mut GridMap<'map>) {
+        map.render_grid(canvas);
+    }
+
+    pub fn render<'map>(&mut self, canvas: &mut WindowCanvas, map: &mut GridMap<'map>) {
+        self.render_map(canvas, map);
+        self.render_entities(canvas);
+    }
+
 }
-// fn foo () {
-//     traits::traits::
-// }
+
+impl<'texture> TextureLoader for EngineState<'texture>
+{
+    fn load_texture_cached<P>(&mut self, p: P) -> TextureRef
+    where
+    P: AsRef<Path>
+     {
+        self.load_texture_cached(p)
+    }
+}
+

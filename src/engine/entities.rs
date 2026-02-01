@@ -1,109 +1,66 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// Critters <3
 ////////////////////////////////////////////////////////////////////////////////
-use std::{rc::Rc, sync::Arc};
+use std::{path::Path, sync::Arc};
 
-use hecs;
-use sdl2::{rect::Point, render::Texture};
+use hecs::{self, DynamicBundle};
+use sdl2::rect::Point;
 
-use crate::constants::TILE_SIZE;
-use crate::engine::types;
+use crate::{
+    constants::TILE_SIZE,
+    engine::types::{self, TextureRef},
+};
 
+pub trait EntityComponents {
+    type Components : DynamicBundle;
+}
+
+#[derive(hecs::Bundle,Clone)]
+
+pub struct WorldPositionC(pub Point);
+impl WorldPositionC {
+    pub fn new(x: i32, y: i32) -> Self {
+        WorldPositionC(Point::new(x, y))
+    }
+}
 #[derive(hecs::Bundle)]
+pub struct SizeC(pub Point);
 
-struct WorldPositionC(Point);
-#[derive(hecs::Bundle)]
-struct SizeC(Point);
+impl SizeC {
+    pub fn tile_sized() -> Self {
+        SizeC(Point::new(TILE_SIZE as _, TILE_SIZE as _))
+    }
+}
 
-#[derive(hecs::Bundle)]
+#[derive(hecs::Bundle, Copy, Clone)]
 pub struct RenderTileC {
-    texture: Arc<types::TextureRef>,
+    pub texture: types::TextureRef,
+}
+
+impl RenderTileC {
+    pub fn new(t: TextureRef) -> Self {
+        RenderTileC { texture: t }
+    }
+    pub fn from_path<P: AsRef<Path>>(engine: &mut impl super::traits::TextureLoader, p: P) -> Self {
+        RenderTileC {
+            texture: engine.load_texture_cached(p.as_ref()),
+        }
+    }
 }
 
 #[derive(hecs::Bundle)]
 pub struct MovingC {
     speed: Point,
     //x+y
-    direction: Point,
+    orientation: Point,
 }
 
 impl MovingC {
-    fn new(speed: Point, direction: Point) -> Self {
-        MovingC { speed, direction }
-    }
-}
-
-pub mod food {
-    use hecs::Entity;
-
-    use crate::engine::entities::WorldPositionC;
-
-    #[derive(hecs::Bundle)]
-
-    struct FoodE(Entity);
-
-    impl FoodE {
-
-        fn spawn(
-                self,
-                world: &mut hecs::World,
-                position: WorldPositionC,
-                renderable: super::RenderTileC,
-            ) -> Self {
-                FoodE(world.spawn((position,renderable)))
-        }
+    pub fn new(speed: Point, orientation: Point) -> Self {
+        MovingC { speed, orientation }
     }
 
-}
-
-pub mod critter {
-    use sdl2::rect::Point;
-
-    use crate::{constants::TILE_SIZE, engine::entities::WorldPositionC};
-
-    #[derive(hecs::Bundle)]
-    struct CritterStatsC {
-        energy: u32,
-        /// in seconds
-        lifetime: u32,
-    }
-
-    impl CritterStatsC {
-        fn new(energy: u32, lifetime: u32) -> Self {
-            CritterStatsC { energy, lifetime }
-        }
-        fn new_new(energy: u32) -> Self {
-            CritterStatsC {
-                energy,
-                lifetime: 0,
-            }
-        }
-    }
-
-    struct CritterE(hecs::Entity);
-
-    impl CritterE {
-        fn spawn(
-            self,
-            world: &mut hecs::World,
-            position: Point,
-            direction: Point,
-            energy: u32,
-        ) -> Self {
-            // The builder pattern:
-
-            let components = (
-                WorldPositionC(position),
-                super::MovingC::new(Point::new(0, 0), direction),
-                super::SizeC(Point::new(TILE_SIZE as _, TILE_SIZE as _)),
-                CritterStatsC::new_new(energy),
-            );
-
-            let e: hecs::Entity = world.spawn(components);
-
-            CritterE(e)
-
-            // let size = SizeC()
-        }
+    pub fn inert() -> Self {
+        MovingC { speed: Point::new(0,0), orientation: Point::new(0,0)}
     }
 }

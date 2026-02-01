@@ -12,12 +12,14 @@ use std::sync::Arc;
 use fastrand;
 use std::time::{Duration, Instant};
 
-use crate::map::GridMap;
-use crate::texture_cache::EntityTextureManager;
-use crate::engine::texture_cache;
+use crate::engine::map::GridMap;
+use crate::engine::texture_cache::EntityTextureManager;
+use crate::engine::types::EngineState;
 mod constants;
-mod map;
 mod engine;
+mod sim;
+
+use engine::map;
 // mod tmp;
 
 pub fn main() {
@@ -32,7 +34,7 @@ pub fn main() {
     gl_attr.set_context_version(4, 5);
     gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
 
-    let window = video_subsystem
+    let mut window = video_subsystem
         .window("rust-sdl2 demo", 800, 600)
         .position_centered()
         .opengl()
@@ -60,14 +62,21 @@ pub fn main() {
 
     let max_tiles: usize = width * height;
 
-    let c: sdl2::render::TextureCreator<sdl2::video::WindowContext> = canvas.texture_creator();
-    let tile_texture_mgr: EntityTextureManager<map::Tile> =
-        texture_cache::EntityTextureManager::new(&c, max_tiles);
-
+    let texture_creator = canvas.texture_creator();
+    let tile_texture_mgr: EntityTextureManager<crate::engine::map::Tile> =
+        EntityTextureManager::new(&texture_creator, max_tiles);
     let mut grid_map: GridMap<'_> = GridMap::new(width, height, tile_texture_mgr);
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
+
+    let mut engine_state: EngineState = EngineState::init(&texture_creator);
+
+    engine_state.preload_textures_from_folder(&"data/textures");
+    sim::init_sim(&mut engine_state);
+
+
+
 
     let font = ttf.load_font("cambria.ttf", 32).unwrap();
 
@@ -95,13 +104,12 @@ pub fn main() {
         }
 
 
-        grid_map.add_food(
-            fastrand::usize(0..width),
-            fastrand::usize(0..height),
-            map::FoodType::Food0,
-            1,
-        );
-        grid_map.render_grid(&mut canvas);
+        // let x = fastrand::i32(0..width as i32);
+        // let y = fastrand::i32(0..height as i32);
+        // sim::food::FoodE::spawn_at(&mut engine_state, x, y, sim::food::FoodType::Food1, 1);
+        // grid_map.render_grid(&mut canvas);
+
+        engine_state.render(&mut canvas, &mut grid_map);
 
         {
             let fps = iterations / (Instant::now().duration_since(start).as_secs().max(1));
@@ -119,7 +127,7 @@ pub fn main() {
                 .unwrap();
             let TextureQuery { width, height, .. } = texture.query();
 
-            let target = Rect::new(50, 50, width, height);
+            let target = Rect::new(50, 50, width/2, height/2);
             canvas.copy(&texture, None, target).unwrap();
         }
 
