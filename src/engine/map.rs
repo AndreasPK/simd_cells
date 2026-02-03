@@ -7,7 +7,7 @@ use crate::constants::TILE_SIZE;
 use crate::engine::texture_cache::{EntityTextureManager, RendersToCanvas};
 use sdl2::{
     pixels::Color,
-    rect::Rect,
+    rect::{Point, Rect},
     render::{Canvas, WindowCanvas},
     video::Window,
 };
@@ -31,7 +31,9 @@ pub const EMPTY_TILE: Tile = Tile {
 };
 
 pub struct GridMap<'map> {
+    /// 0..width
     width: usize,
+    ///0..height (0 = top most)
     tiles: Vec<Tile>,
     entity_texture_manager: EntityTextureManager<'map, Tile>,
 }
@@ -50,6 +52,40 @@ impl<'map> GridMap<'map> {
 
     fn to_index(&self, x: usize, y: usize) -> usize {
         x + y * self.width
+    }
+
+    /// Get width of current grid
+    pub fn get_width(&self) -> usize {
+        self.width
+    }
+
+    /// Get height of current grid
+    pub fn get_height(&self) -> usize {
+        if self.width == 0 {
+            0
+        } else {
+            self.tiles.len() / self.width
+        }
+    }
+
+    /// Get tile at specific position
+    pub fn get_tile_at(&self, x: usize, y: usize) -> Option<&Tile> {
+        let height = self.get_height();
+        if x >= self.width || y >= height {
+            return None;
+        }
+        let idx = self.to_index(x, y);
+        self.tiles.get(idx)
+    }
+
+    pub fn get_random_pos(&self) -> Point {
+        debug_assert!(self.width > 0);
+        debug_assert!(self.tiles.len() % self.width == 0);
+
+        let height = self.tiles.len() / self.width;
+        let x = fastrand::usize(..self.width);
+        let y = fastrand::usize(..height);
+        Point::new(x as i32, y as i32)
     }
 
     pub fn render_grid<'a, 'b>(&'b mut self, canvas: &'a mut WindowCanvas)
