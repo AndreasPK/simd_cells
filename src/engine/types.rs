@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, time::Instant};
 
 use hecs;
 use sdl2::{rect::{Point, Rect}, render::Canvas};
@@ -38,6 +38,8 @@ pub struct EngineState<'texture> {
     pub render_state: RenderState<'texture>,
     pub grid: GridMap<'texture>,
     pub entities: Box<hecs::World>,
+    pub tick: u64,
+    pub start_time: Instant,
 }
 
 #[derive(Hash,Eq,Debug,PartialEq,Clone,Copy)]

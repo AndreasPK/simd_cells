@@ -10,7 +10,7 @@ edition = "2024"
 # egui_glow = "0.33.3"
 fastrand = "2.3.0"
 glow = "0.16.0"
-hecs = { path = "hecs", features = ["macros"]}
+hecs = { version = ">=0.11", features = ["macros"]}
 # imgui = "0.12.0"
 # imgui-glow-renderer = "0.13.0"
 # imgui-sdl2-support = "0.13.0"

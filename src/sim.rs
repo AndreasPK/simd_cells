@@ -2,6 +2,8 @@ use crate::engine::types::EngineState;
 
 pub mod food;
 pub mod critter;
+pub mod systems;
+pub mod settings;
 
 
 pub fn init_sim(sim: &mut EngineState) -> () {
