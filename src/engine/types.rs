@@ -5,7 +5,11 @@ use sdl2::{rect::{Point, Rect}, render::Canvas};
 
 use crate::{
     constants::TILE_SIZE,
-    engine::{entities::{RenderTileC, WorldPositionC}, map::GridMap},
+    engine::{
+        entities::{RenderTileC, WorldPositionC},
+        map::GridMap,
+        timers::TimerManager,
+    },
 };
 use super::texture_map::TextureMap;
 
@@ -38,6 +42,7 @@ pub struct EngineState<'texture> {
     pub render_state: RenderState<'texture>,
     pub grid: GridMap<'texture>,
     pub entities: Box<hecs::World>,
+    pub timer_manager: TimerManager,
     pub tick: u64,
     pub start_time: Instant,
 }

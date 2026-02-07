@@ -9,6 +9,7 @@ use crate::engine::{
     entities::{RenderTileC, WorldPositionC},
     map::GridMap,
     texture_cache::EntityTextureManager,
+    timers::TimerManager,
     traits::TextureLoader,
     types::{EngineState, RenderState, TextureRef},
 };
@@ -20,6 +21,7 @@ pub mod texture_cache;
 pub mod texture_map;
 pub mod traits;
 pub mod types;
+pub mod timers;
 
 impl<'texture> EngineState<'texture> {
     pub fn init(
@@ -36,6 +38,7 @@ impl<'texture> EngineState<'texture> {
             render_state: render_state,
             grid: grid,
             entities: Box::new(entities),
+            timer_manager: TimerManager::new(),
             tick: 0,
             start_time: Instant::now(),
         }
@@ -96,6 +99,12 @@ impl<'texture> EngineState<'texture> {
         self.render_map(canvas);
         self.render_entities(canvas);
     }
+
+    pub fn tick(&mut self) {
+        self.tick += 1;
+    }
+
+
 }
 
 impl<'texture> TextureLoader for EngineState<'texture> {
