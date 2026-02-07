@@ -3,7 +3,10 @@ use std::path::Path;
 use hecs;
 use sdl2::{rect::{Point, Rect}, render::Canvas};
 
-use crate::{constants::TILE_SIZE, engine::entities::{RenderTileC, WorldPositionC}};
+use crate::{
+    constants::TILE_SIZE,
+    engine::{entities::{RenderTileC, WorldPositionC}, map::GridMap},
+};
 use super::texture_map::TextureMap;
 
 pub struct MseEntityId(u64);
@@ -33,6 +36,7 @@ impl <'texture>RenderState<'texture> {
 
 pub struct EngineState<'texture> {
     pub render_state: RenderState<'texture>,
+    pub grid: GridMap<'texture>,
     pub entities: Box<hecs::World>,
 }
 

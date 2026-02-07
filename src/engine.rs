@@ -7,6 +7,7 @@ use sdl2::video::{Window, WindowContext};
 use crate::engine::{
     entities::{RenderTileC, WorldPositionC},
     map::GridMap,
+    texture_cache::EntityTextureManager,
     traits::TextureLoader,
     types::{EngineState, RenderState, TextureRef},
 };
@@ -20,12 +21,19 @@ pub mod texture_map;
 pub mod map;
 
 impl <'texture>EngineState<'texture> {
-    pub fn init(texture_creator: &'texture TextureCreator<WindowContext>) -> Self{
+    pub fn init(texture_creator: &'texture TextureCreator<WindowContext>, width: usize, height: usize) -> Self{
         let render_state: RenderState<'texture> = RenderState::init(texture_creator);
         let entities: World = World::new();
+        let max_tiles: usize = width * height;
+        let tile_texture_mgr = EntityTextureManager::new(texture_creator, max_tiles);
+        let grid: GridMap<'texture> = GridMap::new(width, height, tile_texture_mgr);
         EngineState{
-            render_state:render_state, entities:Box::new(entities)
+            render_state:render_state, grid:grid, entities:Box::new(entities)
         }
+    }
+
+    pub fn get_map(&self) -> &GridMap<'texture> {
+        &self.grid
     }
 
     pub fn preload_textures_from_folder<P>(&mut self, p: &P) -> Option<()>
@@ -70,12 +78,12 @@ impl <'texture>EngineState<'texture> {
 
     }
 
-    pub fn render_map<'map>(&mut self, canvas: &mut WindowCanvas, map: &mut GridMap<'map>) {
-        map.render_grid(canvas);
+    pub fn render_map(&mut self, canvas: &mut WindowCanvas) {
+        self.grid.render_grid(canvas);
     }
 
-    pub fn render<'map>(&mut self, canvas: &mut WindowCanvas, map: &mut GridMap<'map>) {
-        self.render_map(canvas, map);
+    pub fn render(&mut self, canvas: &mut WindowCanvas) {
+        self.render_map(canvas);
         self.render_entities(canvas);
     }
 
@@ -90,4 +98,3 @@ impl<'texture> TextureLoader for EngineState<'texture>
         self.load_texture_cached(p)
     }
 }
-

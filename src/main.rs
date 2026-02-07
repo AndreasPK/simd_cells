@@ -12,8 +12,6 @@ use std::sync::Arc;
 use fastrand;
 use std::time::{Duration, Instant};
 
-use crate::engine::map::GridMap;
-use crate::engine::texture_cache::EntityTextureManager;
 use crate::engine::types::EngineState;
 mod constants;
 mod engine;
@@ -60,17 +58,12 @@ pub fn main() {
     canvas.clear();
     canvas.present();
 
-    let max_tiles: usize = width * height;
-
     let texture_creator = canvas.texture_creator();
-    let tile_texture_mgr: EntityTextureManager<crate::engine::map::Tile> =
-        EntityTextureManager::new(&texture_creator, max_tiles);
-    let mut grid_map: GridMap<'_> = GridMap::new(width, height, tile_texture_mgr);
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
 
-    let mut engine_state: EngineState = EngineState::init(&texture_creator);
+    let mut engine_state: EngineState = EngineState::init(&texture_creator, width, height);
 
     engine_state.preload_textures_from_folder(&"data/textures");
     sim::init_sim(&mut engine_state);
@@ -107,9 +100,9 @@ pub fn main() {
         // let x = fastrand::i32(0..width as i32);
         // let y = fastrand::i32(0..height as i32);
         // sim::food::FoodE::spawn_at(&mut engine_state, x, y, sim::food::FoodType::Food1, 1);
-        // grid_map.render_grid(&mut canvas);
+        // engine_state.render_map(&mut canvas);
 
-        engine_state.render(&mut canvas, &mut grid_map);
+        engine_state.render(&mut canvas);
 
         {
             let fps = iterations / (Instant::now().duration_since(start).as_secs().max(1));
